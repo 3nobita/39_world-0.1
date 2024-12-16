@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Notes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        form {
+            max-width: 600px;
+            margin: auto;
+        }
+        input, textarea {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+        }
+        button {
+            margin-top: 10px;
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Add Notes</h1>
+    <form action="/api/notes" method="POST">
+        <!-- Heading -->
+        <label for="heading">Heading:</label>
+        <input type="text" id="heading" name="heading" required>
+
+        <!-- Points and Explain Section -->
+        <div id="points-section">
+            <div class="point-group">
+                <label>Point:</label>
+                <input type="text" name="points[]" placeholder="Enter a point" required>
+
+                <label>Explain:</label>
+                <textarea name="explain[]" rows="2" placeholder="Explanation for this point"></textarea>
+            </div>
+        </div>
+
+        <!-- Add More Button -->
+        <button type="button" id="add-more">Add More</button>
+
+        <!-- Submit Button -->
+        <button type="submit">Submit Note</button>
+    </form>
+
+    <script>
+        // Add more point-explain pairs dynamically
+        document.getElementById('add-more').addEventListener('click', () => {
+            const pointsSection = document.getElementById('points-section');
+
+            // Create a new point group
+            const pointGroup = document.createElement('div');
+            pointGroup.classList.add('point-group');
+            pointGroup.innerHTML = `
+                <label>Point:</label>
+                <input type="text" name="points[]" placeholder="Enter a point" required>
+
+                <label>Explain:</label>
+                <textarea name="explain[]" rows="2" placeholder="Explanation for this point"></textarea>
+            `;
+
+            // Append the new point group
+            pointsSection.appendChild(pointGroup);
+        });
+    </script>
+</body>
+</html>

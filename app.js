@@ -4,9 +4,12 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 require('dotenv').config();
-
 // Import the notesRouters
 const notesRouters = require('./allRoutes/notesRouters');
+
+// Middleware to parse form data and JSON
+app.use(express.urlencoded({ extended: true })); // For form data (application/x-www-form-urlencoded)
+app.use(express.json()); // For JSON data
 
 // Serve static files from the 'public' folder
 app.use(express.static(path.join(__dirname, 'public')));
