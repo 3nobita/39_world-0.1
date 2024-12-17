@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 const User = require('../models/User'); // Your User model
 const crypto = require('crypto');
@@ -55,13 +54,10 @@ router.post('/signup', async (req, res) => {
         // Generate Random Password
         const randomPassword = generateRandomPassword();
 
-        // Hash the Password
-        const hashedPassword = await bcrypt.hash(randomPassword, 10);
-
-        // Save User to Database
+        // Save User to Database (Storing password in plain text)
         const newUser = new User({
             email,
-            password: hashedPassword
+            password: randomPassword // Store plaintext password (not recommended for production)
         });
         await newUser.save();
 
@@ -86,7 +82,7 @@ router.post('/login', async (req, res) => {
             return res.status(400).json({ message: 'Invalid email or password!' });
         }
 
-        // Compare password directly (not recommended for production)
+        // Compare password directly (since it's stored in plain text)
         if (password !== user.password) {
             return res.status(400).json({ message: 'Invalid email or password!' });
         }
@@ -98,6 +94,5 @@ router.post('/login', async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
-
 
 module.exports = router;
