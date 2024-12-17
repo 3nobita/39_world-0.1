@@ -4,12 +4,26 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 require('dotenv').config();
+
+// Middleware 
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
 // Import the notesRouters
 const notesRouters = require('./allRoutes/notesRouters');
+const authRouters = require('./allRoutes/authRouters');
 
-// Middleware to parse form data and JSON
-app.use(express.urlencoded({ extended: true })); // For form data (application/x-www-form-urlencoded)
-app.use(express.json()); // For JSON data
+// Use the routes 
+app.use(notesRouters);
+app.use(authRouters);
+
+// allgets
+app.get('/signup',(req,res)=>{
+    res.render('signup')
+})
+app.get('/login',(req,res)=>{
+    res.render('login')
+})
 
 // Serve static files from the 'public' folder
 app.use(express.static(path.join(__dirname, 'public')));
@@ -27,8 +41,7 @@ mongoose.connect(process.env.MONGODB_URI)
         console.error('Error connecting to MongoDB:', err);
     });
 
-// Use the routes defined in notesRouters
-app.use(notesRouters);
+
 
 // Home route
 app.get('/', (req, res) => {
