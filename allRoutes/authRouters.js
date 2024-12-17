@@ -86,17 +86,18 @@ router.post('/login', async (req, res) => {
             return res.status(400).json({ message: 'Invalid email or password!' });
         }
 
-        // Compare Password
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
+        // Compare password directly (not recommended for production)
+        if (password !== user.password) {
             return res.status(400).json({ message: 'Invalid email or password!' });
         }
 
-        res.redirect('/');
+        // Redirect to home page after successful login
+        res.redirect('/home'); // Redirecting to the '/home' route (you can change it based on your routing structure)
     } catch (error) {
         console.error('Login error:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+
 
 module.exports = router;
