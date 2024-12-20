@@ -1,6 +1,16 @@
+//allRoutes/notesRouters.ejs
+
 const express = require('express');
 const router = express.Router();
 const Notes = require('../models/Notes'); // Import the Notes model
+
+const isAuthenticated = (req, res, next) => {
+    if (req.session && req.session.user) {
+        return next();
+    }
+    res.status(401).json({ success: false, message: "Unauthorized. Please log in." });
+};
+
 
 // Route to render the form page (addnotes.ejs)
 router.get('/addnotes', (req, res) => {
@@ -8,39 +18,41 @@ router.get('/addnotes', (req, res) => {
 });
 
 // Route to handle form submission and save data to MongoDB
-router.post('/api/notes', (req, res) => {
+router.post('/api/notes', isAuthenticated, async (req, res) => {
     const { heading, points, explain } = req.body;
 
     if (!heading || !points || !explain || points.length === 0) {
         return res.status(400).json({ success: false, message: "Heading, points, and explain are required" });
     }
 
-    const newNote = new Notes({
-        heading,
-        points,
-        explain
-    });
-
-    newNote.save()
-        .then(() => res.status(201).json({ success: true, message: "Note posted successfully!" }))
-        .catch(err => res.status(500).json({ success: false, message: "Error saving note", error: err }));
-});
-
-
-// Route to display all notes on notes.ejs
-router.get('/notes', async (req, res) => {
     try {
-        // Fetch all notes from MongoDB
-        const notes = await Notes.find();
+        const newNote = new Notes({
+            heading,
+            points,
+            explain,
+            user: req.session.user._id // Associate the note with the logged-in user
+        });
 
-        // Render notes.ejs and pass the fetched data
-        res.render('notes', { notes }); // Renders views/notes.ejs
+        await newNote.save();
+        res.status(201).json({ success: true, message: "Note created successfully!" });
     } catch (err) {
-        console.error("Error fetching notes:", err);
-        res.status(500).send("Internal Server Error");
+        console.error('Error creating note:', err);
+        res.status(500).json({ success: false, message: "Error saving note", error: err });
     }
 });
 
+
+
+// Route to display all notes on notes.ejs
+router.get('/notes', isAuthenticated, async (req, res) => {
+    try {
+        const notes = await Notes.find({ user: req.session.user._id }); // Fetch notes specific to the user
+        res.render('notes', { notes });
+    } catch (err) {
+        console.error('Error fetching notes:', err);
+        res.status(500).send("Internal Server Error");
+    }
+});
 
 // Route to handle search functionality
 router.get('/suggest', async (req, res) => {
@@ -89,14 +101,20 @@ router.get('/search', async (req, res) => {
     }
 });
 
-
 // Route to render the edit form with the note's current data
 router.get('/editnotes/:id', async (req, res) => {
     try {
-        const note = await Notes.findById(req.params.id); // Find note by ID
-        if (!note) {
-            return res.status(404).send('Note not found');
+        const userId = req.session?.user?._id; // Assuming the session stores the logged-in user's `_id`
+        if (!userId) {
+            return res.status(401).send('Unauthorized. Please log in.');
         }
+
+        // Find the note by ID and ensure it belongs to the logged-in user
+        const note = await Notes.findOne({ _id: req.params.id, user: userId });
+        if (!note) {
+            return res.status(404).send('Note not found or you do not have permission to edit it.');
+        }
+
         res.render('edit/editnotes', { note }); // Render edit form with the note data
     } catch (err) {
         console.error('Error fetching note:', err);
@@ -108,16 +126,22 @@ router.get('/editnotes/:id', async (req, res) => {
 router.post('/editnotes/:id', async (req, res) => {
     const { heading, points, explain } = req.body;
 
-    // Ensure points is a string if it isn't one already
+    // Ensure points is an array
     const pointsArray = Array.isArray(points) ? points : points ? points.split(',').map(point => point.trim()) : [];
 
-    // Similarly, ensure explain is an array if it's not one already
+    // Ensure explain is an array
     const explainArray = Array.isArray(explain) ? explain : explain ? explain.split(',').map(exp => exp.trim()) : [];
 
     try {
-        const note = await Notes.findById(req.params.id);
+        const userId = req.session?.user?._id; // Assuming the session stores the logged-in user's `_id`
+        if (!userId) {
+            return res.status(401).send('Unauthorized. Please log in.');
+        }
+
+        // Find the note by ID and ensure it belongs to the logged-in user
+        const note = await Notes.findOne({ _id: req.params.id, user: userId });
         if (!note) {
-            return res.status(404).send('Note not found');
+            return res.status(404).send('Note not found or you do not have permission to edit it.');
         }
 
         // Update the note's fields
@@ -132,18 +156,21 @@ router.post('/editnotes/:id', async (req, res) => {
         res.status(500).send('Internal Server Error');
     }
 });
-router.post('/delete/:id',async(req,res)=>{
+
+
+router.post('/delete/:id', isAuthenticated, async (req, res) => {
     const noteID = req.params.id;
-    try{
-        await Notes.findByIdAndDelete(noteID);
-        res.redirect('/notes')
+    try {
+        const note = await Notes.findOneAndDelete({ _id: noteID, user: req.session.user._id });
+        if (!note) {
+            return res.status(404).json({ message: "Note not found or unauthorized." });
+        }
+        res.redirect('/notes');
+    } catch (err) {
+        console.error('Error deleting note:', err);
+        res.status(500).render('error', { error: err });
     }
-    catch(err){
-        res.render('solve this error',err);
-        res.status(500).send('internal Problem')
-    }
-  
-})
+});
 
 
 
