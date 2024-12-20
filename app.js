@@ -5,7 +5,14 @@ const session = require('express-session');
 const app = express();
 const PORT = process.env.PORT || 3000;
 require('dotenv').config();
-
+// MongoDB connection
+mongoose.connect(process.env.MONGODB_URI)
+    .then(() => {
+        console.log('MongoDB is connected!');
+    })
+    .catch((err) => {
+        console.error('Error connecting to MongoDB:', err);
+    });
 // Add this middleware before your routes
 app.use(session({
     secret: 'your-secret-key', // Replace with a secure key
@@ -13,7 +20,11 @@ app.use(session({
     saveUninitialized: true,
     cookie: { secure: false } // Set `secure: true` if using HTTPS
 }));
-
+// Serve static files from the 'public' folder
+app.use(express.static(path.join(__dirname, 'public')));
+// Set up view engine (EJS)
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 // Middleware 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -25,16 +36,12 @@ function isAuthenticated(req, res, next) {
         res.status(401).json({ success: false, massage: "Unauthorized. Please log in." }) // Redirect to the login page if not authenticated
     }
 }
-
-
 // Import the notesRouters
 const notesRouters = require('./allRoutes/notesRouters');
 const authRouters = require('./allRoutes/authRouters');
-
 // Use the routes 
 app.use(notesRouters);
 app.use(authRouters);
-
 // allgets
 app.get('/signup', (req, res) => {
     res.render('signup')
@@ -65,23 +72,6 @@ app.get('/logout', (req, res) => {
         res.redirect('/login'); // Clear session and redirect to login
     });
 });
-
-// Serve static files from the 'public' folder
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Set up view engine (EJS)
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
-
-// MongoDB connection
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => {
-        console.log('MongoDB is connected!');
-    })
-    .catch((err) => {
-        console.error('Error connecting to MongoDB:', err);
-    });
-
 // Start the server
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
