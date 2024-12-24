@@ -100,7 +100,7 @@ router.post('/login', async (req, res) => {
 
         // Set session user
         req.session.user = { _id: user._id, email: user.email };
-        res.redirect('/notes');
+        res.redirect('/');
     } catch (error) {
         console.error('Login error:', error);
         res.status(500).json({ error: 'Internal Server Error' });
