@@ -21,6 +21,13 @@ const transporter = nodemailer.createTransport({
         pass: process.env.EMAIL_PASS  // App-Specific Password
     }
 });
+function isAuthenticated(req, res, next) {
+    if (req.session && req.session.user) {
+        return next(); // User is authenticated, proceed to the next middleware or route handler
+    } else {
+        res.status(401).json({ success: false, massage: "Unauthorized. Please log in." }) // Redirect to the login page if not authenticated
+    }
+}
 
 // Function to Generate Random Password
 const generateRandomPassword = () => {
@@ -82,20 +89,35 @@ router.post('/signup', async (req, res) => {
 
 // Login Route
 router.post('/login', async (req, res) => {
-    const { email, password } = req.body;
+    const { identifier, password } = req.body;
 
     try {
-        const user = await User.findOne({ email });
-        if (!user || password !== user.password) {
-            return res.status(400).json({ message: 'Invalid email or password!' });
+        // Find the user by either email or displayName
+        const user = await User.findOne({
+            $or: [
+                { email: identifier },
+                { displayName: identifier }
+            ]
+        });
+
+        if (!user) {
+            return res.status(401).render('login', { error: 'Invalid email/username or password.' });
         }
 
-        // Set session user
-        req.session.user = { _id: user._id, email: user.email };
-        res.redirect('/');
-    } catch (error) {
-        console.error('Login error:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        // Check if the password matches
+        const isPasswordValid = (password, user.password);
+        if (!isPasswordValid) {
+            return res.status(401).render('login', { error: 'Invalid email/username or password.' });
+        }
+
+        // Save the user session
+        req.session.user = user;
+
+        // Redirect to the home page
+        res.redirect('/home');
+    } catch (err) {
+        console.error('Error during login:', err);
+        res.status(500).render('login', { error: 'Something went wrong. Please try again.' });
     }
 });
 
@@ -131,6 +153,52 @@ router.post('/forgot-password', async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
+
+router.post('/profile/username', async (req, res) => {
+    const { username } = req.body;
+    const userId = req.session.user._id;
+
+    try {
+        const user = await User.findById(userId);
+        user.displayName = username;
+        await user.save();
+
+        // Update session user data
+        req.session.user.displayName = username;
+
+        res.redirect('/profile');
+    } catch (err) {
+        console.error('Error updating username:', err);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+// Update password
+router.post('/profile/password', async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.session.user._id;
+
+    try {
+        const user = await User.findById(userId);
+
+        // Check if current password matches
+        if (user.password !== currentPassword) {
+            return res.status(400).send('Current password is incorrect.');
+        }
+
+        // Update password
+        user.password = newPassword;
+        await user.save();
+
+        res.redirect('/profile');
+    } catch (err) {
+        console.error('Error updating password:', err);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+
+
 
 // Logout Route
 router.get('/logout', (req, res) => {

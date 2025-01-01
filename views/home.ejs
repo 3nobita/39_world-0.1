@@ -469,7 +469,7 @@
         <div class="container">
             <input type="checkbox" name="check" id="check">
             <div class="logo-container">
-                <h3 class="logo">Welcome <span>Name</span></h3>
+                <h3 class="logo">Welcome <%= user ? user.displayName : 'Guest' %></span></h3>
             </div>
 
             <div class="nav-btn">
@@ -483,7 +483,7 @@
                             <div class="dropdown">
                                 <ul>
                                     <li class="dropdown-link">
-                                        <a href="#">Profile</a>
+                                        <a href="/profile">Profile</a>
                                     </li>
                                     <li class="dropdown-link">
                                         <a href="notes">Notes</a>
@@ -497,7 +497,7 @@
                                         <div class="dropdown second">
                                             <ul>
                                                 <li class="dropdown-link">
-                                                    <a href="#">Link 1</a>
+                                                    <a href="/ageCalculator">Age Calculator</a>
                                                 </li>
                                                 <li class="dropdown-link">
                                                     <a href="#">Link 2</a>

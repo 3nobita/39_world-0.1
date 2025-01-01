@@ -127,18 +127,29 @@
     <div>
         <h1>Login</h1>
         <form action="/login" method="POST">
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" required>
-
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-
-            <button type="submit">Login</button>
-            <div class="links">
-                <a href="#" onclick="showForgotPassword()">Forgot Password?</a> |
-                <a href="/signup">Signup</a>
+            <div>
+                <label for="identifier">Email or Username:</label>
+                <input 
+                    type="text" 
+                    id="identifier" 
+                    name="identifier" 
+                    placeholder="Enter your email or username" 
+                    required
+                >
             </div>
+            <div>
+                <label for="password">Password:</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    placeholder="Enter your password" 
+                    required
+                >
+            </div>
+            <button type="submit">Login</button>
         </form>
+        
     </div>
 
     <div id="forgot-password-modal">

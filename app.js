@@ -43,9 +43,6 @@ const authRouters = require('./allRoutes/authRouters');
 app.use(notesRouters);
 app.use(authRouters);
 // allgets
-app.get('/signup', (req, res) => {
-    res.render('signup')
-})
 app.get('/', (req, res) => {
     if (req.session.user) {
         // If the user is already logged in, redirect them to the home page or dashboard
@@ -55,6 +52,9 @@ app.get('/', (req, res) => {
         res.redirect('/login');
     }
 });
+app.get('/signup', (req, res) => {
+    res.render('signup')
+})
 app.get('/login', (req, res) => {
     if (req.session && req.session.user) {
         return res.redirect('/home'); // Redirect only if authenticated
@@ -62,7 +62,21 @@ app.get('/login', (req, res) => {
     res.render('login');
 });
 app.get('/home', isAuthenticated, (req, res) => {
-    res.render('home', { User: req.session.user });
+    console.log(req.session.user); // Debug the user object
+    const user = req.session.user;
+    res.render('home', { user });
+});
+
+app.get('/ageCalculator', (req, res) => {
+    res.render('ageCalculator')
+})
+app.get('/profile', (req, res) => {
+    if (!req.session.user) {
+        return res.redirect('/login');
+    }
+
+    const user = req.session.user; // Retrieve user data from session
+    res.render('profile', { user });
 });
 app.get('/forgot-password', (req, res) => {
     res.status(200).json({ message: 'Forgot Password API is working. Use POST /forgot-password to reset your password.' });
