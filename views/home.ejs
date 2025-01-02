@@ -469,7 +469,7 @@
         <div class="container">
             <input type="checkbox" name="check" id="check">
             <div class="logo-container">
-                <h3 class="logo">Welcome <%= user ? user.displayName : 'Guest' %></span></h3>
+                <h3 class="logo">Welcome <%= user ? user.displayName : 'Guest' %></span> <span><p id="liveTime"></p></span></h3>
             </div>
 
             <div class="nav-btn">
@@ -603,4 +603,41 @@
             <div class="overlay"></div>
         </section>
     </main>
+    <script>
+        function updateLiveTime(birthDate) {
+            if (!birthDate) {
+                document.getElementById('liveTime').textContent = "Birthday not provided!";
+                return;
+            }
+    
+            const birth = new Date(birthDate);
+            const now = new Date();
+            const diff = now - birth;
+    
+            const seconds = Math.floor(diff / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+            const years = Math.floor(days / 365);
+    
+            const remainingDays = days % 365;
+            const remainingHours = hours % 24;
+            const remainingMinutes = minutes % 60;
+            const remainingSeconds = seconds % 60;
+    
+            document.getElementById('liveTime').textContent = 
+                `${years} years, ${remainingDays} days, ${remainingHours} hours, ` +
+                `${remainingMinutes} minutes, ${remainingSeconds} seconds`;
+        }
+    
+        // Replace 'user.birthDate' with the actual date from your server
+        const userBirthDate = "<%= user.birthDate || '' %>";
+    
+        if (userBirthDate) {
+            setInterval(() => updateLiveTime(userBirthDate), 1000);
+        } else {
+            document.getElementById('liveTime').textContent = "No birthday available!";
+        }
+    </script>
+    
 </body>

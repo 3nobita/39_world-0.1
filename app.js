@@ -74,10 +74,10 @@ app.get('/profile', (req, res) => {
     if (!req.session.user) {
         return res.redirect('/login');
     }
-
-    const user = req.session.user; // Retrieve user data from session
-    res.render('profile', { user });
+    console.log('User birthDate:', req.session.user.birthDate); // Debug log
+    res.render('profile', { user: req.session.user });
 });
+
 app.get('/forgot-password', (req, res) => {
     res.status(200).json({ message: 'Forgot Password API is working. Use POST /forgot-password to reset your password.' });
 });

@@ -9,8 +9,8 @@
 <body>
     <h1>Profile</h1>
 
-    <!-- Form to update username -->
-    <form action="/profile/username" method="POST">
+    <!-- Form to Update Username -->
+    <form action="/update-username" method="POST">
         <div>
             <label for="username">Change Username:</label>
             <input 
@@ -19,16 +19,13 @@
                 name="username" 
                 placeholder="Enter new username" 
                 value="<%= user?.displayName || '' %>"
-                required
             >
         </div>
         <button type="submit">Update Username</button>
     </form>
 
-    <hr>
-
-    <!-- Form to update password -->
-    <form action="/profile/password" method="POST">
+    <!-- Form to Update Password -->
+    <form action="/update-password" method="POST">
         <div>
             <label for="currentPassword">Current Password:</label>
             <input 
@@ -46,14 +43,26 @@
                 type="password" 
                 id="newPassword" 
                 name="newPassword" 
-                placeholder="Enter new password" 
-                required
+                placeholder="Enter new password"
             >
         </div>
         <button type="submit">Update Password</button>
     </form>
 
-    <hr>
+    <!-- Form to Update Birth Date -->
+    <form action="/update-birthdate" method="POST">
+        <div>
+            <label for="birthDate">Birth Date:</label>
+            <input 
+            type="date" 
+            id="birthDate" 
+            name="birthDate" 
+            value="<%= user?.birthDate ? new Date(user.birthDate).toISOString().split('T')[0] : '' %>"
+        >
+        
+        </div>
+        <button type="submit">Update Birth Date</button>
+    </form>
 
     <a href="/home">Back to Home</a>
 </body>

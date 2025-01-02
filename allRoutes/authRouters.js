@@ -196,6 +196,29 @@ router.post('/profile/password', async (req, res) => {
         res.status(500).send('Internal Server Error');
     }
 });
+router.post('/update-birthdate', async (req, res) => {
+    const { birthDate } = req.body;
+
+    try {
+        // Validate session
+        if (!req.session.user) {
+            return res.redirect('/login');
+        }
+
+        // Update the user's birth date
+        await User.findByIdAndUpdate(req.session.user._id, { birthDate });
+
+        // Update session data
+        req.session.user.birthDate = birthDate;
+
+        res.redirect('/profile');
+    } catch (err) {
+        console.error('Error updating birth date:', err);
+        res.status(500).send('Something went wrong. Please try again.');
+    }
+});
+
+
 
 
 
