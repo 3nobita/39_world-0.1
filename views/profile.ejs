@@ -64,6 +64,35 @@
         <button type="submit">Update Birth Date</button>
     </form>
 
+    <!-- Math Test Scoreboard -->
+    <section>
+        <h2>Math Test Scoreboard</h2>
+        <% if (user?.mathScores && user.mathScores.length > 0) { %>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Test #</th>
+                        <th>Difficulty</th>
+                        <th>Score</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% user.mathScores.forEach((test, index) => { %>
+                        <tr>
+                            <td><%= index + 1 %></td>
+                            <td><%= test.difficulty %></td>
+                            <td><%= test.score %></td>
+                            <td><%= new Date(test.date).toLocaleDateString() %></td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        <% } else { %>
+            <p>No math test scores available yet.</p>
+        <% } %>
+    </section>
+
     <a href="/home">Back to Home</a>
 </body>
 </html>

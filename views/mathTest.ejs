@@ -1,0 +1,107 @@
+<!-- mathTest.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Test</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <h1>Math Test</h1>
+    <a href="/home">Back to Home</a>
+    
+    <!-- Difficulty Selection Form -->
+    <form id="difficultyForm">
+        <label for="difficulty">Select Difficulty:</label>
+        <select id="difficulty" name="difficulty">
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+        </select>
+        <button type="button" onclick="startTest()">Start Test</button>
+    </form>
+
+    <!-- Question Container -->
+    <div id="questionContainer" style="display: none;">
+        <h2 id="questionText"></h2>
+        <form id="answerForm" onsubmit="return checkAnswer()">
+            <input 
+                type="number" 
+                id="answerInput" 
+                placeholder="Enter your answer" 
+                required 
+                autocomplete="off">
+            <button type="submit">Submit Answer</button>
+        </form>
+        <p id="feedback" style="margin-top: 10px; font-weight: bold;"></p>
+        <button id="nextButton" style="display: none; margin-top: 10px;" onclick="nextQuestion()">Next Question</button>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        let currentDifficulty = "easy";
+        let currentQuestion = {};
+
+        // Start the test by loading the first question
+        async function startTest() {
+            currentDifficulty = document.getElementById("difficulty").value;
+            document.getElementById("difficultyForm").style.display = "none";
+            document.getElementById("questionContainer").style.display = "block";
+            await loadQuestion();
+        }
+
+        // Fetch a question from the server
+        async function fetchQuestion() {
+            try {
+                const response = await fetch(`/api/generate-question?difficulty=${currentDifficulty}`);
+                const data = await response.json();
+                if (data.success) {
+                    return data.question;
+                } else {
+                    throw new Error(data.message || "Failed to fetch question");
+                }
+            } catch (error) {
+                console.error("Error fetching question:", error);
+                alert("Unable to load question. Please try again later.");
+                return null;
+            }
+        }
+        
+        // Load a new question into the UI
+        async function loadQuestion() {
+            const question = await fetchQuestion();
+            if (question) {
+                currentQuestion = question;
+                document.getElementById("questionText").textContent = question.question;
+                document.getElementById("answerInput").value = "";
+                document.getElementById("feedback").textContent = "";
+                document.getElementById("nextButton").style.display = "none";
+            } else {
+                document.getElementById("questionText").textContent = "Error loading question.";
+            }
+        }
+        
+        // Check the user's answer and provide feedback
+        function checkAnswer() {
+            const userAnswer = parseFloat(document.getElementById("answerInput").value);
+            const feedbackElement = document.getElementById("feedback");
+            if (userAnswer === currentQuestion.answer) {
+                feedbackElement.textContent = "Correct!";
+                feedbackElement.style.color = "green";
+                document.getElementById("nextButton").style.display = "inline-block";
+            } else {
+                feedbackElement.textContent = `Wrong! ${currentQuestion.explanation}`;
+                feedbackElement.style.color = "red";
+                document.getElementById("nextButton").style.display = "inline-block";
+            }
+            return false; // Prevent form submission
+        }
+
+        // Load the next question
+        async function nextQuestion() {
+            await loadQuestion();
+        }
+    </script>
+</body>
+</html>

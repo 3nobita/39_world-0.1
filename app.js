@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const path = require('path');
 const session = require('express-session');
 const app = express();
+const User = require('./models/User')
 const PORT = process.env.PORT || 3000;
 require('dotenv').config();
 // MongoDB connection
@@ -39,16 +40,16 @@ function isAuthenticated(req, res, next) {
 // Import the notesRouters
 const notesRouters = require('./allRoutes/notesRouters');
 const authRouters = require('./allRoutes/authRouters');
+const mathRoutes = require('./allRoutes/mathRouters');
 // Use the routes 
+app.use(mathRoutes);
 app.use(notesRouters);
 app.use(authRouters);
 // allgets
 app.get('/', (req, res) => {
     if (req.session.user) {
-        // If the user is already logged in, redirect them to the home page or dashboard
         res.redirect('/home');
     } else {
-        // If no session exists, redirect to the login page
         res.redirect('/login');
     }
 });
@@ -70,17 +71,28 @@ app.get('/home', isAuthenticated, (req, res) => {
 app.get('/ageCalculator', (req, res) => {
     res.render('ageCalculator')
 })
-app.get('/profile', (req, res) => {
-    if (!req.session.user) {
-        return res.redirect('/login');
+app.get('/profile', async (req, res) => {
+    try {
+        const user = await User.findById(req.session.userId); // Adjust to your authentication logic
+        res.render('profile', { user });
+    } catch (err) {
+        console.error(err);
+        res.redirect('/login');
     }
-    console.log('User birthDate:', req.session.user.birthDate); // Debug log
-    res.render('profile', { user: req.session.user });
 });
+
+
+
+app.get('/mathTest', (req, res) => {
+    res.render('mathTest')
+})
+
 
 app.get('/forgot-password', (req, res) => {
     res.status(200).json({ message: 'Forgot Password API is working. Use POST /forgot-password to reset your password.' });
 });
+
+
 app.get('/logout', (req, res) => {
     req.session.destroy(() => {
         res.redirect('/login'); // Clear session and redirect to login
